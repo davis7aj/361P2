@@ -58,9 +58,25 @@
 // (DHCP options replaced BOOTP vend, but does not have a fixed size and
 // cannot be declared in a fixed-size struct.)
 typedef struct {
-  uint8_t op;
+  uint8_t op; // Message op code / message type (1 = BOOTREQUEST, 2 = BOOTREPLY)
   //TODO: Add the remaining fields to this struct as specified in
   //      RFC2131 and the "Phase 1" section of the assignment
+
+  uint8_t htype;        // Hardware address type (e.g., 1 for Ethernet)
+  uint8_t hlen;         // Hardware address length (e.g., 6 for Ethernet)
+  uint8_t hops;         // Hops used by relay agents
+  uint32_t xid;         // Transaction ID
+  uint16_t secs;        // Seconds elapsed since client began address acquisition/renewal
+  uint16_t flags;       // Flags field
+  uint32_t ciaddr;      // Client IP address (if already in use)
+  uint32_t yiaddr;      // Your (client) IP address
+  uint32_t siaddr;      // IP address of next server to use in bootstrap
+  uint32_t giaddr;      // Relay agent IP address
+  uint8_t chaddr[16];   // Client hardware address
+  uint8_t sname[64];    // Optional server host name
+  uint8_t file[128];    // Boot file name
+  // Additional DHCP options can be included here
+
 } msg_t;
 
 // Utility function for printing the raw bytes of a packet:
