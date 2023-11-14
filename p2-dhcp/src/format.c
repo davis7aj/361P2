@@ -6,9 +6,9 @@
 void
 dump_msg (FILE *output, msg_t *msg, size_t size)
 {
-  fprintf (output, "------------------------------------------------------\n");
-  fprintf (output, "BOOTP Options\n");
-  fprintf (output, "------------------------------------------------------\n");
+  printf ("------------------------------------------------------\n");
+  printf ("BOOTP Options\n");
+  printf ("------------------------------------------------------\n");
 
   // TODO: Print out the BOOTP fields as specified in the assignment
 
@@ -24,7 +24,7 @@ dump_msg (FILE *output, msg_t *msg, size_t size)
             printf("Hardware Type (htype) = %hhu [Ethernet (10Mb)]\n", msg->htype);
             break;
         case 6:
-            printf("Hardware Type (htype) = %hhu [IEEE 802 Network]\n", msg->htype);
+            printf("Hardware Type (htype) = %hhu [IEEE 802 Networks]\n", msg->htype);
             break;
         case 7:
             printf("Hardware Type (htype) = %hhu [ARCNET]\n", msg->htype);
