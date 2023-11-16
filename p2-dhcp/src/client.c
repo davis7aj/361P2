@@ -22,16 +22,27 @@ get_args (int argc, char **argv)
   in_addr_t r;
   inet_aton("127.0.0.2", &r);
   int index = 0;
+  msg_t msg;
+  memset(msg, 0, sizeof(msg));
+  memcpy(msg.op, m);
+  memcpy(msg.htype, t);
+  memcpy(msg.hlen, 16);
+  memcpy(msg.xid, x);
+  memcpy(msg.ciaddr, r);
+  memcpy(msg.siaddr, s);
+  memcpy(msg.chaddr, c);
   while (index < argc)
   {
     if (strcmp(argv[index], "-x") == 0)
     {
       x = (uint32_t) strtol(argv[index + 1], (char **)NULL, 10);
+      memcpy(msg.xid, x);
       index += 2;
     }
     if (strcmp(argv[index], "-t") == 0)
     {
       t = (int) strtol(argv[index + 1], (char **)NULL, 10);
+      memcpy(msg.htype, t);
       index += 2;
     }
     if (strcmp(argv[index], "-c") == 0)
@@ -40,30 +51,26 @@ get_args (int argc, char **argv)
       {
         c[i] = (uint8_t) strtol(argv[index + 1], (char **)NULL, 10);
       }
+      memcpy(msg.chaddr, c);
       index += 2;
     }
     if (strcmp(argv[index], "-m") == 0)
     {
       m = (int) strtol(argv[index + 1], (char **)NULL, 10);
+      memcpy(msg.op, m);
       index += 2;
     }
     if (strcmp(argv[index], "-s") == 0)
     {
-      char *first = argv[index + 1];
-      char *second = argv[index + 2];
-      char *third = argv[index + 3];
-      char *fourth = argv[index + 4];
-      inet_aton(first + "." + second + "." + third + "." + fourth, *s);
-      index += 5;
+      inet_aton(argv[index + 1], *s);
+      memcpy(msg.siaddr, s);
+      index += 2;
     }
     if (strcmp(argv[index], "-r") == 0)
     {
-      char *first = argv[index + 1];
-      char *second = argv[index + 2];
-      char *third = argv[index + 3];
-      char *fourth = argv[index + 4];
-      inet_aton(first + "." + second + "." + third + "." + fourth, *r);
-      index += 5;
+      inet_aton(argv[index + 1], *r);
+      memcpy(msg.ciaddr, r);
+      index += 2;
     }
     if (strcmp(argv[index], "-p") == 0)
     {
@@ -76,6 +83,7 @@ get_args (int argc, char **argv)
       inet_aton("127.0.0.1", &val);
       address.sin_addr = val;
       address.sin_zero = 0;
+      
       index += 1;
     }
   }
