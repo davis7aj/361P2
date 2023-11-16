@@ -33,8 +33,8 @@ main (int argc, char **argv)
   // TODO: Determine the size of the packet in bytes
   // Note: You have used the fstat() function before
 
-  struct stat fileStat;
-  if (fstat(file, &fileStat) == -1)
+  struct stat packBuf;
+  if (fstat(file, &packBuf) == -1)
   {
     perror("couldnt get file info");
     close(file);
@@ -42,22 +42,22 @@ main (int argc, char **argv)
   }
 
   // TODO: Define a uint8_t * variable
-  uint8_t *packBuf;
+  uint8_t *dhcp;
 
   // TODO: Allocate enough space to hold the packet (store in your varaible)
-  packBuf = (uint8_t *)calloc(fileStat.st_size, sizeof(uint8_t));
+  dhcp = (uint8_t *)malloc(packBuf.st_size);
 
   // TODO: Read the packet data from the file into your variable
-  ssize_t nbRead = read(file, packBuf, fileStat.st_size);
+  ssize_t nbRead = read(file, dhcp, packBuf.st_size);
   if (nbRead ==-1)
   {
     perror("err reading fle");
-    free(packBuf);
+    free(dhcp);
     close(file);
     return 1;
   }
   
-  msg_t dhcpMsg;
+  // msg_t dhcpMsg;
 
   //copy contents to struct
   // if (memcpy(&dhcpMsg,  packBuf, sizeof(packBuf)) != 0)
@@ -66,15 +66,15 @@ main (int argc, char **argv)
   //   fprintf(stderr, "ERROR cpy data to struct using memcpy_s");
   //   return 1;
   // }
-  memcpy(&dhcpMsg,  packBuf, sizeof(packBuf));
+  // memcpy(&dhcpMsg,  packBuf, fileStat.st_size);
   
 
   // TODO: Call dump_msg() from format.c to print the packet data to stdout
-  dump_msg(filePointer, &dhcpMsg, sizeof(packBuf));
+  dump_msg(filePointer, (msg_t *)dhcp, packBuf.st_size);
   // TODO: Don't forget to free the dynamically-allocated space
 
   close(file);
   fclose(filePointer);
-  free(packBuf);
+  free(dhcp);
   return EXIT_SUCCESS;
 }

@@ -68,14 +68,15 @@ typedef struct {
   uint32_t xid;         // Transaction ID
   uint16_t secs;        // Seconds elapsed since client began address acquisition/renewal
   uint16_t flags;       // Flags field
-  in_addr_t ciaddr;      // Client IP address (if already in use)
-  in_addr_t yiaddr;      // Your (client) IP address
-  in_addr_t siaddr;      // IP address of next server to use in bootstrap
-  in_addr_t giaddr;      // Relay agent IP address
+  struct in_addr ciaddr;      // Client IP address (if already in use)
+  struct in_addr yiaddr;      // Your (client) IP address
+  struct in_addr siaddr;      // IP address of next server to use in bootstrap
+  struct in_addr giaddr;      // Relay agent IP address
   uint8_t chaddr[16];   // Client hardware address
-  uint8_t sname[64];    // Optional server host name
-  uint8_t file[128];    // Boot file name
+  unsigned char sname[64];    // Optional server host name
+  unsigned char file[128];    // Boot file name
   // Additional DHCP options can be included here
+  unsigned char options[128];
 
 } msg_t;
 
