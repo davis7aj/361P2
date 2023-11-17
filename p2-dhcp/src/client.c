@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "dhcp.h"
 #include "format.h"
@@ -17,7 +18,7 @@ get_args (int argc, char **argv)
   struct sockaddr_in address;
   uint32_t x = strtol("42", (char **)NULL, 10);
   int t = ETH;
-  uint8_t c[20] = {1, 2, 3, 4, 5, 6};
+  uint8_t c[16] = {1, 2, 3, 4, 5, 6};
   int m = 1;
   char *s = "127.0.0.1";
   char *r = "127.0.0.2";
@@ -66,11 +67,11 @@ get_args (int argc, char **argv)
       char *str = argv[index + 1];
       for (int i = 0; i < msg.hlen; i++)
       {
-        char byte;
-        sscanf(&str[i * 2], "%02hhx",  (char*) &byte);
-        c[i] = byte;
+        unsigned char byte;
+        sscanf(&str[i * 2], "%02hhx",  &byte);
+        msg.chaddr[i] = byte;
       }
-      memcpy(&msg.chaddr, &c, sizeof(c));
+      //memcpy(&msg.chaddr, &c, sizeof(c));
       index += 2;
     }
     else if (strcmp(argv[index], "-m") == 0)
@@ -152,7 +153,28 @@ get_args (int argc, char **argv)
     } else if (p && msg.xid != 0) {
       msg_t msg_offer;
       msg_t msg_ack;
-      recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , address.sin_addr.s_addr, sizeof(address.sin_addr.s_addr));
+      memset(&msg_offer, 0, sizeof(msg));
+      memset(&msg_ack, 0, sizeof(msg));
+      socklen_t len = 0;
+      struct sockaddr_in addr;
+
+      memset(&msg_offer, 0, sizeof(msg_offer));
+      memset(&msg_ack, 0, sizeof(msg_ack));
+      memset(&addr, 0, sizeof(addr));
+
+      ssize_t error = recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , (struct sockaddr *) &addr, &len);
+      printf("%ld %d", error, errno);
+      for (int ii = 0; ii < sizeof(msg_offer.options); ii++) {
+        printf("%02x ", msg_offer.options[ii]);
+        if (ii % 8 == 7) {
+          printf(" ");
+        }
+        if (ii % 16 == 15) {
+          printf("\n");
+        }
+      }
+      printf("\n");
+
       printf("++++++++++++++++\n");
       printf("CLIENT RECEIVED:\n");
       dump_msg(stdout, &msg_offer, sizeof(msg_offer));
