@@ -17,7 +17,7 @@ get_args (int argc, char **argv)
   struct sockaddr_in address;
   uint32_t x = strtol("42", (char **)NULL, 10);
   int t = ETH;
-  uint8_t c[16] = {1, 2, 3, 4, 5, 6};
+  uint8_t c[20] = {1, 2, 3, 4, 5, 6};
   int m = 1;
   char *s = "127.0.0.1";
   char *r = "127.0.0.2";
@@ -64,16 +64,11 @@ get_args (int argc, char **argv)
     {
       memset(&c, 0, sizeof(c));
       char *str = argv[index + 1];
-      if (t == ATM)
+      for (int i = 0; i < msg.hlen; i++)
       {
-        
-      } else {
-        for (int i = 0; i < msg.hlen; i++)
-        {
-          char byte;
-          sscanf(&str[i * 2], "%02x",  &byte);
-          c[i] = byte;
-        }
+        char byte;
+        sscanf(&str[i * 2], "%02x",  &byte);
+        c[i] = byte;
       }
       memcpy(&msg.chaddr, &c, sizeof(c));
       index += 2;
@@ -121,17 +116,11 @@ get_args (int argc, char **argv)
   options_offset += sizeof(uint32_t);
 
   // Write DHCP message type:
-  // T (tag) = 53
-  // L (len) = 1
-  // V (val) = 1-9
   msg.options[options_offset++] = 53;
   msg.options[options_offset++] = 1;
   msg.options[options_offset++] = m;
 
   // Write DHCP request IP:
-  // T (tag) = 53
-  // L (len) = 1
-  // V (val) = 1-9
   msg.options[options_offset++] = 50;
   msg.options[options_offset++] = 4;
   struct in_addr tmp;
