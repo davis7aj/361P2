@@ -141,6 +141,10 @@ get_args (int argc, char **argv)
   if (p)
   {
     sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
+    printf("\n++++++++++++++++\n");
+    printf("SERVER RECEIVED:\n");
+    dump_msg(stdout, &msg, sizeof(msg) + options_offset);
+    printf("++++++++++++++++\n");
     close(socketfd);
   }
   return true;
