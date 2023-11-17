@@ -57,30 +57,33 @@
 // should NOT include the BOOTP vend field or the DHCP options field.
 // (DHCP options replaced BOOTP vend, but does not have a fixed size and
 // cannot be declared in a fixed-size struct.)
-typedef struct {
-  uint8_t op; // Message op code / message type (1 = BOOTREQUEST, 2 = BOOTREPLY)
-  //TODO: Add the remaining fields to this struct as specified in
-  //      RFC2131 and the "Phase 1" section of the assignment
+typedef struct
+{
+  uint8_t
+      op; // Message op code / message type (1 = BOOTREQUEST, 2 = BOOTREPLY)
+  // TODO: Add the remaining fields to this struct as specified in
+  //       RFC2131 and the "Phase 1" section of the assignment
 
-  uint8_t htype;        // Hardware address type (e.g., 1 for Ethernet)
-  uint8_t hlen;         // Hardware address length (e.g., 6 for Ethernet)
-  uint8_t hops;         // Hops used by relay agents
-  uint32_t xid;         // Transaction ID
-  uint16_t secs;        // Seconds elapsed since client began address acquisition/renewal
-  uint16_t flags;       // Flags field
-  struct in_addr ciaddr;      // Client IP address (if already in use)
-  struct in_addr yiaddr;      // Your (client) IP address
-  struct in_addr siaddr;      // IP address of next server to use in bootstrap
-  struct in_addr giaddr;      // Relay agent IP address
-  uint8_t chaddr[16];   // Client hardware address
-  unsigned char sname[64];    // Optional server host name
-  unsigned char file[128];    // Boot file name
+  uint8_t htype; // Hardware address type (e.g., 1 for Ethernet)
+  uint8_t hlen;  // Hardware address length (e.g., 6 for Ethernet)
+  uint8_t hops;  // Hops used by relay agents
+  uint32_t xid;  // Transaction ID
+  uint16_t
+      secs; // Seconds elapsed since client began address acquisition/renewal
+  uint16_t flags;          // Flags field
+  struct in_addr ciaddr;   // Client IP address (if already in use)
+  struct in_addr yiaddr;   // Your (client) IP address
+  struct in_addr siaddr;   // IP address of next server to use in bootstrap
+  struct in_addr giaddr;   // Relay agent IP address
+  uint8_t chaddr[16];      // Client hardware address
+  unsigned char sname[64]; // Optional server host name
+  unsigned char file[128]; // Boot file name
   // Additional DHCP options can be included here
   unsigned char options[128];
 
 } msg_t;
 
 // Utility function for printing the raw bytes of a packet:
-void dump_packet(uint8_t *, size_t);
+void dump_packet (uint8_t *, size_t);
 
 #endif
