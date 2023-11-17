@@ -90,8 +90,8 @@ get_args (int argc, char **argv)
     }
     else if (strcmp(argv[index], "-p") == 0)
     {
-      //x = htonl(0); //remove after
-      //memcpy(&msg.xid, &x, sizeof(x)); //remove after
+      // x = htonl(0); //remove after
+      // memcpy(&msg.xid, &x, sizeof(x)); //remove after
       struct timeval timeout = { 5, 0 };
       socketfd = socket (AF_INET, SOCK_DGRAM, 0);
       setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (const void *) &timeout,
@@ -149,7 +149,7 @@ get_args (int argc, char **argv)
       printf("SERVER RECEIVED:\n");
       dump_msg(stdout, &msg, sizeof(msg) + options_offset);
       printf("++++++++++++++++\n");
-    } else {
+    } else if (p && msg.xid != 0) {
       msg_t msg_offer;
       msg_t msg_ack;
       recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , address.sin_addr.s_addr, sizeof(address.sin_addr.s_addr));
