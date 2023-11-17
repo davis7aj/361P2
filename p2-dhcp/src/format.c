@@ -61,32 +61,6 @@ void dump_msg(FILE *output, msg_t *msg, size_t size)
     printf("Hops (hops) = %hhu\n", msg->hops);
     printf("Transaction ID (xid) = %d (0x%x)\n", ntohl(msg->xid), ntohl(msg->xid));
 
-    // int seconds = msg->secs % 60;
-    // int totalMinutes = msg->secs / 60;
-    // int minutes  = totalMinutes % 60;
-    // int hours = totalMinutes / 60;
-
-    // char str1[3];
-    // char str2[3];
-
-    // if (seconds <= 9)
-    // {
-    //   /* code */
-    //   sprintf(str1, "0%d", seconds);
-    // } else {
-    //   sprintf(str1, "%d", seconds);
-    // }
-
-    //     if (minutes <= 9)
-    // {
-    //   /* code */
-    //   sprintf(str2, "0%d", minutes);
-    // } else {
-    //   sprintf(str2, "%d", minutes);
-    // }
-
-    // printf("%d\n", msg->secs);
-    // printf("%d\n", seconds);
 
     uint16_t days, hours, minutes, seconds;
     uint16_t originSec = ntohs(msg->secs);
