@@ -67,7 +67,7 @@ get_args (int argc, char **argv)
       for (int i = 0; i < msg.hlen; i++)
       {
         char byte;
-        sscanf(&str[i * 2], "%02x",  &byte);
+        sscanf(&str[i * 2], "%02hhx",  (char*) &byte);
         c[i] = byte;
       }
       memcpy(&msg.chaddr, &c, sizeof(c));
@@ -92,7 +92,10 @@ get_args (int argc, char **argv)
     {
       //x = htonl(0); //remove after
       //memcpy(&msg.xid, &x, sizeof(x)); //remove after
+      struct timeval timeout = { 5, 0 };
       socketfd = socket (AF_INET, SOCK_DGRAM, 0);
+      setsockopt (socketfd, SOL_SOCKET, SO_RCVTIMEO, (const void *) &timeout,
+                  sizeof (timeout));
       memset(&address, 0, sizeof(address));
       address.sin_family = AF_INET;
       address.sin_port = (uint16_t) strtol(get_port(), (char **)NULL, 10);
@@ -138,13 +141,55 @@ get_args (int argc, char **argv)
   dump_msg(stdout, &msg, sizeof(msg) + options_offset);
 
   // If user wants us to send DHCP request
-  if (p)
+  if (p || msg.xid != 0)
   {
     sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
-    printf("\n++++++++++++++++\n");
-    printf("SERVER RECEIVED:\n");
-    dump_msg(stdout, &msg, sizeof(msg) + options_offset);
-    printf("++++++++++++++++\n");
+    if (msg.xid == 0) {
+      printf("\n++++++++++++++++\n");
+      printf("SERVER RECEIVED:\n");
+      dump_msg(stdout, &msg, sizeof(msg) + options_offset);
+      printf("++++++++++++++++\n");
+    } else {
+      msg_t msg_offer;
+      msg_t msg_ack;
+      recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , address.sin_addr.s_addr, sizeof(address.sin_addr.s_addr));
+      printf("++++++++++++++++\n");
+      printf("CLIENT RECEIVED:\n");
+      dump_msg(stdout, &msg_offer, sizeof(msg_offer));
+      printf("++++++++++++++++\n");
+      memset(&msg.options, 0, sizeof(msg.options));
+
+      options_offset = 0;
+      // Write additional DHCP options
+      *(uint32_t *)msg.options = htonl(MAGIC_COOKIE);
+      options_offset += sizeof(uint32_t);
+
+      // Write DHCP message type:
+      msg.options[options_offset++] = 53;
+      msg.options[options_offset++] = 1;
+      msg.options[options_offset++] = m;
+
+      // Write DHCP request IP:
+      msg.options[options_offset++] = 50;
+      msg.options[options_offset++] = 4;
+      struct in_addr tmp = msg_offer.siaddr;
+      *(uint32_t *)(msg.options + options_offset) = tmp.s_addr;
+      options_offset += sizeof(uint32_t);
+
+      msg.options[options_offset++] = 54;
+      msg.options[options_offset++] = 4;
+      inet_aton(s, &tmp);
+      *(uint32_t *)(msg.options + options_offset) = tmp.s_addr;
+      options_offset += sizeof(uint32_t);
+
+      sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
+      dump_msg(stdout, &msg, sizeof(msg) + options_offset);
+      recvfrom(socketfd, &msg_ack, sizeof(msg_ack), 0 , NULL, NULL);
+      printf("++++++++++++++++\n");
+      printf("CLIENT RECEIVED:\n");
+      dump_msg(stdout, &msg_ack, sizeof(msg_ack));
+      printf("++++++++++++++++\n");
+    }
     close(socketfd);
   }
   return true;
