@@ -144,10 +144,8 @@ get_args (int argc, char **argv)
   // If user wants us to send DHCP request
   if (p || msg.xid != 0)
   {
-    sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
-    if (msg.xid == 0) {
-
-    } else if (p && msg.xid != 0) {
+    sendto(socketfd, &msg, sizeof(msg), 0, (struct sockaddr *) &address, sizeof(address));
+    if (p && msg.xid != 0) {
       msg_t msg_offer;
       msg_t msg_ack;
       memset(&msg_offer, 0, sizeof(msg));
@@ -159,18 +157,7 @@ get_args (int argc, char **argv)
       memset(&msg_ack, 0, sizeof(msg_ack));
       memset(&addr, 0, sizeof(addr));
 
-      ssize_t error = recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , (struct sockaddr *) &addr, &len);
-      // printf("%ld %d", error, errno);
-      // for (int ii = 0; ii < sizeof(msg_offer.options); ii++) {
-      //   printf("%02x ", msg_offer.options[ii]);
-      //   if (ii % 8 == 7) {
-      //     printf(" ");
-      //   }
-      //   if (ii % 16 == 15) {
-      //     printf("\n");
-      //   }
-      // }
-      // printf("\n");
+      recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , (struct sockaddr *) &addr, &len);
 
       printf("++++++++++++++++\n");
       printf("CLIENT RECEIVED:\n");
@@ -201,7 +188,7 @@ get_args (int argc, char **argv)
       *(uint32_t *)(msg.options + options_offset) = tmp.s_addr;
       options_offset += sizeof(uint32_t);
 
-      sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
+      sendto(socketfd, &msg, sizeof(msg), 0, (struct sockaddr *) &address, sizeof(address));
       dump_msg(stdout, &msg, sizeof(msg) + options_offset);
       recvfrom(socketfd, &msg_ack, sizeof(msg_ack), 0 , NULL, NULL);
       printf("++++++++++++++++\n");

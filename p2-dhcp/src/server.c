@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "dhcp.h"
 #include "format.h"
@@ -15,6 +19,7 @@ static bool debug = false;
 int
 main (int argc, char **argv)
 {
+  debug = get_args (argc, argv);
   msg_t msg;
   memset(&msg, 0, sizeof(msg));
   int socketfd = socket (AF_INET, SOCK_DGRAM, 0);
@@ -27,11 +32,28 @@ main (int argc, char **argv)
     printf("error errno : %d\n", errno);
     EXIT_FAILURE;
   }
-  recvfrom(socketfd, &msg, sizeof(msg), 0 , NULL, NULL);
-  printf("\n++++++++++++++++\n");
-  printf("SERVER RECEIVED:\n");
-  dump_msg(stdout, &msg, sizeof(msg));
-  printf("++++++++++++++++\n");
+  socklen_t len = 0;
+  recvfrom(socketfd, &msg, sizeof(msg), 0 , (struct sockaddr *)&address, &len);
+  if (msg.xid == 0)
+  {
+    printf("\n++++++++++++++++\n");
+    printf("SERVER RECEIVED:\n");
+    dump_msg(stdout, &msg, sizeof(msg));
+    printf("++++++++++++++++\n");
+    close(socketfd);
+    return EXIT_SUCCESS;
+  }
+
+  if (msg.options[6] == DHCPDISCOVER)
+  {
+    msg.options[6] = DHCPOFFER;
+    msg.op = BOOTREPLY;
+    memcpy(&msg.yiaddr, &msg.options[10], sizeof(uint32_t));
+    sendto(socketfd, &msg, sizeof(msg), 0, (struct sockaddr *) &address, sizeof(address));
+  } else {
+    printf("error errno : %d\n", errno);
+    EXIT_FAILURE;
+  }
   close(socketfd);
   if (debug)
     fprintf (stderr, "Shutting down\n");
