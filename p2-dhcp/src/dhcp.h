@@ -72,7 +72,7 @@ typedef struct {
   struct in_addr yiaddr;      // Your (client) IP address
   struct in_addr siaddr;      // IP address of next server to use in bootstrap
   struct in_addr giaddr;      // Relay agent IP address
-  uint8_t chaddr[20];   // Client hardware address
+  uint8_t chaddr[16];   // Client hardware address
   unsigned char sname[64];    // Optional server host name
   unsigned char file[128];    // Boot file name
   // Additional DHCP options can be included here
