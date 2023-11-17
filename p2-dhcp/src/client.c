@@ -90,8 +90,8 @@ get_args (int argc, char **argv)
     }
     else if (strcmp(argv[index], "-p") == 0)
     {
-      x = htonl(0); //remove after
-      memcpy(&msg.xid, &x, sizeof(x)); //remove after
+      //x = htonl(0); //remove after
+      //memcpy(&msg.xid, &x, sizeof(x)); //remove after
       socketfd = socket (AF_INET, SOCK_DGRAM, 0);
       memset(&address, 0, sizeof(address));
       address.sin_family = AF_INET;
