@@ -17,21 +17,17 @@ get_args (int argc, char **argv)
   struct sockaddr_in address;
   uint32_t x = strtol("42", (char **)NULL, 10);
   int t = ETH;
-  uint8_t c[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-  int m = DHCPDISCOVER;
-  struct in_addr s;
-  inet_aton("127.0.0.1", &s);
-  struct in_addr r;
-  inet_aton("127.0.0.2", &r);
+  uint8_t c[16] = {1, 2, 3, 4, 5, 6};
+  int m = 1;
+  char *s = "127.0.0.1";
+  char *r = "127.0.0.2";
   int index = 1;
   msg_t msg;
   memset(&msg, 0, sizeof(msg));
-  msg.op = m;
+  msg.op = 1;
   msg.htype = t;
   msg.hlen = ETH_LEN;
   msg.xid = htonl(x);
-  msg.ciaddr.s_addr = r.s_addr;
-  msg.siaddr.s_addr = s.s_addr;
   memcpy(&msg.chaddr, &c, sizeof(c));
   while (index < argc)
   {
@@ -45,35 +41,56 @@ get_args (int argc, char **argv)
     else if (strcmp(argv[index], "-t") == 0)
     {
       t = (int) strtol(argv[index + 1], (char **)NULL, 10);
-      memcpy(&msg.htype, &t, sizeof(t));
-      msg.hlen = (int) strtol(argv[index + 1], (char **)NULL, 10); ;
+      msg.htype = t;
+      if (t == ETH)
+      {
+        msg.hlen = ETH_LEN;
+      } else if (t == IEEE802) {
+        msg.hlen = IEEE802_LEN;
+      } else if (t == ARCNET) {
+        msg.hlen = ARCNET_LEN;
+      } else if (t == FRAME_RELAY) {
+        msg.hlen = FRAME_LEN;
+      } else if (t == FIBRE) {
+        msg.hlen = FIBRE_LEN;
+      } else if (t == ATM) {
+        msg.hlen = ATM_LEN;
+      } else {
+        printf("t out of bounds : %d", t);
+      }
       index += 2;
     }
     else if (strcmp(argv[index], "-c") == 0)
     {
-      for (int i = 0; i < strlen(argv[index]); i++)
+      memset(&c, 0, sizeof(c));
+      char *str = argv[index + 1];
+      if (t == ATM)
       {
-        c[i] = (uint8_t) strtol(argv[index + 1], (char **)NULL, 10);
+        
+      } else {
+        for (int i = 0; i < msg.hlen; i++)
+        {
+          char byte;
+          sscanf(&str[i * 2], "%02x",  &byte);
+          c[i] = byte;
+        }
       }
       memcpy(&msg.chaddr, &c, sizeof(c));
       index += 2;
     }
     else if (strcmp(argv[index], "-m") == 0)
     {
-      m = (int) strtol(argv[index + 1], (char **)NULL, 10);
-      msg.op = m;
+      m = strtol(argv[index + 1], (char **) NULL, 10);
       index += 2;
     }
     else if (strcmp(argv[index], "-s") == 0)
     {
-      inet_aton(argv[index + 1], &s);
-      msg.siaddr.s_addr = s.s_addr;
+      s = argv[index + 1];
       index += 2;
     }
     else if (strcmp(argv[index], "-r") == 0)
     {
-      inet_aton(argv[index + 1], &r);
-      msg.ciaddr.s_addr = r.s_addr;
+      r = argv[index + 1];
       index += 2;
     }
     else if (strcmp(argv[index], "-p") == 0)
@@ -84,8 +101,9 @@ get_args (int argc, char **argv)
       memset(&address, 0, sizeof(address));
       address.sin_family = AF_INET;
       address.sin_port = (uint16_t) strtol(get_port(), (char **)NULL, 10);
-      address.sin_addr.s_addr = s.s_addr;
-      // dump_msg(stdout, &msg, sizeof(msg));
+      struct in_addr tmp;
+      inet_aton("127.0.0.1", &tmp);
+      address.sin_addr.s_addr = tmp.s_addr;
       p = true;
       index += 1;
     }
@@ -95,10 +113,45 @@ get_args (int argc, char **argv)
       return false;
     }
   }
-  dump_msg(stdout, &msg, sizeof(msg));
+
+  int options_offset = 0;
+
+  // Write additional DHCP options
+  *(uint32_t *)msg.options = htonl(MAGIC_COOKIE);
+  options_offset += sizeof(uint32_t);
+
+  // Write DHCP message type:
+  // T (tag) = 53
+  // L (len) = 1
+  // V (val) = 1-9
+  msg.options[options_offset++] = 53;
+  msg.options[options_offset++] = 1;
+  msg.options[options_offset++] = m;
+
+  // Write DHCP request IP:
+  // T (tag) = 53
+  // L (len) = 1
+  // V (val) = 1-9
+  msg.options[options_offset++] = 50;
+  msg.options[options_offset++] = 4;
+  struct in_addr tmp;
+  inet_aton(r, &tmp);
+  *(uint32_t *)(msg.options + options_offset) = tmp.s_addr;
+  options_offset += sizeof(uint32_t);
+
+  msg.options[options_offset++] = 54;
+  msg.options[options_offset++] = 4;
+  inet_aton(s, &tmp);
+  *(uint32_t *)(msg.options + options_offset) = tmp.s_addr;
+  options_offset += sizeof(uint32_t);
+
+  // Print out the message
+  dump_msg(stdout, &msg, sizeof(msg) + options_offset);
+
+  // If user wants us to send DHCP request
   if (p)
   {
-    sendto(socketfd, &msg, sizeof(msg), 0, (struct sockaddr *) &address, sizeof(address));
+    sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
     close(socketfd);
   }
   return true;
