@@ -146,10 +146,7 @@ get_args (int argc, char **argv)
   {
     sendto(socketfd, &msg, sizeof(msg) + options_offset, 0, (struct sockaddr *) &address, sizeof(address));
     if (msg.xid == 0) {
-      printf("\n++++++++++++++++\n");
-      printf("SERVER RECEIVED:\n");
-      dump_msg(stdout, &msg, sizeof(msg) + options_offset);
-      printf("++++++++++++++++\n");
+
     } else if (p && msg.xid != 0) {
       msg_t msg_offer;
       msg_t msg_ack;
@@ -163,17 +160,17 @@ get_args (int argc, char **argv)
       memset(&addr, 0, sizeof(addr));
 
       ssize_t error = recvfrom(socketfd, &msg_offer, sizeof(msg_offer), 0 , (struct sockaddr *) &addr, &len);
-      printf("%ld %d", error, errno);
-      for (int ii = 0; ii < sizeof(msg_offer.options); ii++) {
-        printf("%02x ", msg_offer.options[ii]);
-        if (ii % 8 == 7) {
-          printf(" ");
-        }
-        if (ii % 16 == 15) {
-          printf("\n");
-        }
-      }
-      printf("\n");
+      // printf("%ld %d", error, errno);
+      // for (int ii = 0; ii < sizeof(msg_offer.options); ii++) {
+      //   printf("%02x ", msg_offer.options[ii]);
+      //   if (ii % 8 == 7) {
+      //     printf(" ");
+      //   }
+      //   if (ii % 16 == 15) {
+      //     printf("\n");
+      //   }
+      // }
+      // printf("\n");
 
       printf("++++++++++++++++\n");
       printf("CLIENT RECEIVED:\n");
